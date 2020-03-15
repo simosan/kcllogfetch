@@ -107,7 +107,7 @@ public class SimKinesisConsumeApp {
         }
 
         String proppath = args[0];
-        log.info("MainThread Start!");
+        log.warn("MainThread Start!");
         //プロパティファイルを読み込んでMapに格納
         SimGetprop sp = new SimGetprop();
         Map<String,String> mp = sp.setProp(proppath);

@@ -2,4 +2,5 @@ kcllogfetch.properties*
 etc/logback.xml.*
 target/
 .settings/
+bk/
 

@@ -5,8 +5,10 @@
 
   <!-- ログ出力先ディレクトリ -->
   <property name="logDir" value="/Users/sim/log/" />
-  <!-- APログのみ抽出し出力 -->
-  <property name="apfileName" value="kcllog_aplog.log" />
+  <!-- KCLSDKログのみ抽出し出力 -->
+  <property name="sdklogfileName" value="kcllog_awssdklog.log" />
+  <!-- 本APログのみ抽出し出力 -->
+  <property name="aplogfileName" value="kcllog_aplog.log" />
   <!-- ログのタイムスタンプの形式を指定 -->
   <property name="format1" value="%d{yyyy/MM/dd HH:mm:ss.SSS} [%t] %-6p %c{10} %m%n" />
   
@@ -18,25 +20,39 @@
   <property name="guarddutyfileName" value="kcllogfetch_guarddt.log" />
 
 
-  <!-- KinesisClientが出力するAPログ -->
-  <appender name="AP_FILE" class="ch.qos.logback.core.FileAppender">
+  <!-- KCLSDKが出力するAPログ（INFOのみでパッケージ絞り込み） -->
+  <appender name="SDK_FILE" class="ch.qos.logback.core.FileAppender">
     <filter class="ch.qos.logback.classic.filter.LevelFilter">
         <level>INFO</level>
         <onMatch>ACCEPT</onMatch>
 	    <onMismatch>DENY</onMismatch>
     </filter>
-    <file>${logDir}${apfileName}</file>
+    <file>${logDir}${sdklogfileName}</file>
     <encoder>
       <pattern>${format1}</pattern>
     </encoder>
   </appender>
   
-  <logger name="software.amazon">
+  <logger name="software.amazon.kinesis.coordinator" additivity="false">
+    <appender-ref ref="SDK_FILE" />
+  </logger>
+  
+
+  <!-- 本APが出力するAPログ（WARN以上のみ） -->
+  <appender name="AP_FILE" class="ch.qos.logback.core.FileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+        <level>WARN</level>
+    </filter>
+    <file>${logDir}${aplogfileName}</file>
+    <encoder>
+      <pattern>${format1}</pattern>
+    </encoder>
+  </appender>
+  
+  <logger name="com.simosan">
     <appender-ref ref="AP_FILE" />
   </logger>
-  <logger name="com.simosan.dynamodb.dynamoope">
-    <appender-ref ref="AP_FILE" />
-  </logger>
+
 
 
   <!-- Kinesisから取得したvpcflowログのみVPCLOG_FILEに指定したファイルに出力（APログ等は後続の定義で出力） -->
