@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.kinesis.exceptions.InvalidStateException;
 import software.amazon.kinesis.exceptions.ShutdownException;
 import software.amazon.kinesis.lifecycle.events.InitializationInput;
@@ -22,15 +24,17 @@ import software.amazon.kinesis.lifecycle.events.ShardEndedInput;
 import software.amazon.kinesis.lifecycle.events.ShutdownRequestedInput;
 import software.amazon.kinesis.processor.ShardRecordProcessor;
 
-//これ用に作った独自ライブラリ（DynamoDBからタイムスタンプ取得する）
-import com.simosan.dynamodb.dynamoope.SimKinesisConsumeAppDtPos;
 
 public class SimKinesisRecordProcessor implements ShardRecordProcessor{
 
     //slf4jでログに出力したりコンソコールに出力したりする。（logback.xmlがなければコンソール出力）
     private static final Logger log = LoggerFactory.getLogger(SimKinesisRecordProcessor.class);
     private String shardId;
-
+    private AwsCredentialsProvider credentialsProvider;
+	private SimKinesisConsumeAppDtPos skcadt;
+    private Region region;
+    private String tbName;
+    
     /**
      * ShardRecordProcessor（processRecords）からのデータ配信前にKCLによって初期化
      * あわせて初期化にかかるログ（ShardId、所属するシャード内のパーティションキーごとの一意キー）を出力
@@ -40,6 +44,16 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor{
     	this.shardId = initializationInput.shardId();
         log.warn("Initializing record processor for shard: " + initializationInput.shardId());
         log.warn("- Initializing @ Sequence: " + initializationInput.extendedSequenceNumber());
+        
+        
+    	//AssumeRoleをロード
+    	SimAssumeRoleCred sarc = new SimAssumeRoleCred();
+    	credentialsProvider = sarc.loadCredentials();
+
+    	region = Region.of(SimGetprop.getProp("region"));
+    	tbName = SimGetprop.getProp("postbname");
+        skcadt = new SimKinesisConsumeAppDtPos(credentialsProvider, region, tbName);
+                
     }
     
 
@@ -120,26 +134,23 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor{
     	byte[] arr = new byte[d.remaining()];
     	d.get(arr);
     	GZIPInputStream gis;
-		try {
-			gis = new GZIPInputStream(new ByteArrayInputStream(arr));
-	    	BufferedReader bf = new BufferedReader(new InputStreamReader(gis, "UTF-8"));
+    	try {
+    		gis = new GZIPInputStream(new ByteArrayInputStream(arr));
+    		BufferedReader bf = new BufferedReader(new InputStreamReader(gis, "UTF-8"));
 
-	    	while ((strline = bf.readLine()) != null) {
-	    		message += strline;
-	    	}
+    		while ((strline = bf.readLine()) != null) {
+    			message += strline;
+    		}
 
-		} catch (IOException e) {
-			log.error("KinesisClientRecord Buffer Error!", e);
-		}
-
+    	} catch (IOException e) {
+    		log.error("KinesisClientRecord Buffer Error!", e);
+    	}
+    	
         //ログ取得したら最新時刻でDynamoDBのテーブルを更新する。
-        SimKinesisConsumeAppDtPos skcadt = new SimKinesisConsumeAppDtPos(
-        		System.getProperty("prof"),
-        		System.getProperty("postbname"));
         skcadt.updateTimestampItem(
-        		System.getProperty("partitionkey"),
-        		System.getProperty("partitionkey_value"),
-        		System.getProperty("dtpkey"));
+        		SimGetprop.getProp("partitionkey"),
+        		SimGetprop.getProp("partitionkey_value"),
+        		SimGetprop.getProp("dtpkey"));
 
     	return message;
     }
@@ -154,24 +165,24 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor{
      */
 	private void processSingleRecord(String k, String seqnum, ByteBuffer dt) {
 		
-    	ObjectMapper mapper = new ObjectMapper();
-    	JsonNode root;
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root;
     	
-		String jsondt = getBufferzipData(dt);
+        String jsondt = getBufferzipData(dt);
 		
-		try {
-			root = mapper.readTree(jsondt);
-			//ロググループ名取得
-			JsonNode loggrp = root.get("logGroup");
-	    	//CloudwatchLogsのログがJson Or フラットであっても以下実装で出力可能
-	    	for (JsonNode n : root.get("logEvents")) {
-	    		log.info("ProcessingRecordPk:{},Seq:{},LogGroup:{},Data:{}",
-	    				k,seqnum,loggrp,n.get("message").asText());
-	    	}
-		} catch (IOException e) {
-			log.error("extractJsonMessage: Json Parse Error!", e);
-		}
+        try {
+            root = mapper.readTree(jsondt);
+            //ロググループ名取得
+            JsonNode loggrp = root.get("logGroup");
+            //CloudwatchLogsのログがJson Or フラットであっても以下実装で出力可能
+            for (JsonNode n : root.get("logEvents")) {
+            	log.info("ProcessingRecordPk:{},Seq:{},LogGroup:{},Data:{}",
+            			k,seqnum,loggrp,n.get("message").asText());
+            }
+        } catch (IOException e) {
+        	log.error("extractJsonMessage: Json Parse Error!", e);
+        }
 
-	}
+    }
 
 }

@@ -7,9 +7,8 @@ package com.simosan.kclapi.kcllogfetch;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutionException; 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -18,16 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
-import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.kinesis.common.ConfigsBuilder;
 import software.amazon.kinesis.common.InitialPositionInStreamExtended;
 import software.amazon.kinesis.coordinator.Scheduler;
 
-//これ用に作った独自ライブラリ（DynamoDBからタイムスタンプ取得する）
-import com.simosan.dynamodb.dynamoope.SimKinesisConsumeAppDtPos;
 
 /** Kinesis Client Library（以降、KCL）を利用して、KinesisStreamのキューデータを読み込む。
  *  本プログラム実行前にKinesisStreamのセットアップを完了させておく必要がある。
@@ -42,76 +39,49 @@ import com.simosan.dynamodb.dynamoope.SimKinesisConsumeAppDtPos;
 public class SimKinesisConsumeApp {
 
     private static final Logger log = LoggerFactory.getLogger(SimKinesisConsumeApp.class);
-    //以下３つの初期化情報とクレデンシャル（id、key）はプロパティファイルから取得
-    private String streamName;
-    // appNameはDynamoDBのテーブル名になる
-    private String appName;
     private Region region;
-    private String prof;
     private String tbName;
-    private String pk;
-    private String pkv;
-    private String k;
-
 
     private KinesisAsyncClient kinesisClient;
     private DynamoDbAsyncClient dynamoClient;
     private CloudWatchAsyncClient cloudWatchClient;
+    private AwsCredentialsProvider credentialsProvider;
 
-    /**
-     * クレデンシャルやKinesisストリーム等,KCL実行に必要な情報を初期化
-     */
-    private SimKinesisConsumeApp(Map<String,String> simmap) {
-    	// クレデンシャル（ID,シークレットキー）
-    	System.setProperty("aws.accessKeyId", simmap.get("awsaccesskeyid"));
-    	System.setProperty("aws.secretAccessKey", simmap.get("awssecretaccesskey"));
-    	// ストリーム名
-        this.streamName = simmap.get("streamname");
-        // 本体名
-        this.appName = simmap.get("appname");
-        // awsアカウントプロファイル、SimKinesisRecordProcessor用にシステムプロパティにも格納
-        this.prof = simmap.get("prof");
-        System.setProperty("prof", this.prof);
-        // DynamoDBのポジショニング（どこまで読んだか）テーブル名
-        this.tbName = simmap.get("postbname");
-        System.setProperty("postbname", this.tbName);
-        // DynamoDBのポジショニング用テーブルのパーティションキー
-        this.pk = simmap.get("partitionkey");
-        System.setProperty("partitionkey", this.pk);
-        // DynamoDBのポジショニング用テーブルのパーティションキーの値
-        this.pkv = simmap.get("partitionkey_value");
-        System.setProperty("partitionkey_value", this.pkv);
-        // DynamoDBのポジショニング用テーブルのタイムスタンプのキー
-        this.k = simmap.get("dtpkey");
-        System.setProperty("dtpkey", this.k);
-
-        // リージョン名（注意）書き方は東京リージョンの場合、ap-northeast-1にすること
+    private SimKinesisConsumeApp() {
+    	//AssumeRoleをロード
+    	SimAssumeRoleCred sarc = new SimAssumeRoleCred();
+    	this.credentialsProvider = sarc.loadCredentials();
+    	// リージョン名（注意）書き方は東京リージョンの場合、ap-northeast-1にすること
         // v1.xのマニュアルではAP_NORTHEAST_1となっているが、V2.xではエラーになる
-        this.region = Region.of(simmap.get("region"));
-        // kinesisクライアント
-        this.kinesisClient = KinesisAsyncClient.builder().region(region).build();
-        // Dynamoクライアント（kinesis設定をDynamoに格納）
-        this.dynamoClient = DynamoDbAsyncClient.builder().region(region).build();
-        // Cloudwatchクライアント（kinesisの状態をCloudwatchに出力）
-        this.cloudWatchClient = CloudWatchAsyncClient.builder().region(region).build();
-    }
+    	this.region = Region.of(SimGetprop.getProp("region"));
+        // Kinesisクライアント初期化
+        // Dynamoクライアント（kinesis設定をDynamoに格納）初期化
+        this.dynamoClient = DynamoDbAsyncClient.builder()
+        		.credentialsProvider(credentialsProvider)
+        		.region(region)
+        		.build();
+        // Cloudwatchクライアント（kinesisの状態をCloudwatchに出力）初期化
+        this.cloudWatchClient = CloudWatchAsyncClient.builder()
+        		.credentialsProvider(credentialsProvider)
+        		.region(region)
+        		.build();
+        this.kinesisClient = KinesisAsyncClient.builder()
+        		.credentialsProvider(credentialsProvider)
+        		.region(region)
+        		.build();
+        /**this.kinesisClient = KinesisClientUtil.createKinesisAsyncClient(KinesisAsyncClient.builder()
+        		.credentialsProvider(credentialsProvider)
+        		.region(region));**/
 
+    }
+    
     /**
      * メインメソッド
-     * 第１引数にストリーム名を指定、第２引数にAWSリージョンを指定
      */
     public static void main(String[] args) {
-        if (args.length != 1) {
-            log.error("引数が足りません。第1引数にプロパティファイル名（絶対パス）を指定");
-            System.exit(1);
-        }
-
-        String proppath = args[0];
+    	
         log.warn("MainThread Start!");
-        //プロパティファイルを読み込んでMapに格納
-        SimGetprop sp = new SimGetprop();
-        Map<String,String> mp = sp.setProp(proppath);
-        new SimKinesisConsumeApp(mp).run();
+        new SimKinesisConsumeApp().run();
     }
 
     /**
@@ -119,12 +89,11 @@ public class SimKinesisConsumeApp {
      * SimKinesisRecordProcessorFactoryはSimKinesisRecordProcessorFactoryを実装したレコードプロセッサー生成クラス
      */
     private void run() {
-
     	Date date = null;
-
+    	    	
         ConfigsBuilder configsBuilder = new ConfigsBuilder(
-        					streamName,
-        					appName,
+        		            SimGetprop.getProp("streamname"),
+        					SimGetprop.getProp("appname"),
         					kinesisClient,
         					dynamoClient,
         					cloudWatchClient,
@@ -147,21 +116,26 @@ public class SimKinesisConsumeApp {
         //起動時はDynamoDBのSimKinesisConsumeAppDateTimePosテーブルから存在する最新のタイムスタンプを取得
         //タイムスタンプを遡りたいのであれば、DynamoDBのタイムスタンプを直接いじること。
         //スケジューラが起動したらそれ以降のポジショニングはKCLがいい感じにしてくれる
-        SimKinesisConsumeAppDtPos skcadt = new SimKinesisConsumeAppDtPos(prof, tbName);
+        tbName = SimGetprop.getProp("postbname");
+        SimKinesisConsumeAppDtPos skcadt = new SimKinesisConsumeAppDtPos(credentialsProvider, region, tbName);
         String tmstr = null;
-        try {
-            tmstr = skcadt.getTimestampItem(pk, pkv, k);
-            // DynamoDBのdtpが空だったら最新のタイムスタンプに更新
-            if (tmstr == null)
-            {
-                skcadt.updateTimestampItem(
-            		    System.getProperty("partitionkey"),
-            		    System.getProperty("partitionkey_value"),
-            		    System.getProperty("dtpkey"));
-                tmstr = skcadt.getTimestampItem(pk, pkv, k);
-            }
-        } catch(DynamoDbException e) {
-            // テーブルがないケース。あとでCreateTableも作っとく
+
+        tmstr = skcadt.getTimestampItem(
+        		SimGetprop.getProp("partitionkey"),
+            	SimGetprop.getProp("partitionkey_value"),
+            	SimGetprop.getProp("dtpkey"));
+        
+        // DynamoDBのdtpが空だったら最新のタイムスタンプに更新
+        if (tmstr == null)
+        {
+            skcadt.updateTimestampItem(
+            	SimGetprop.getProp("partitionkey"),
+            	SimGetprop.getProp("partitionkey_value"),
+            	SimGetprop.getProp("dtpkey"));
+                tmstr = skcadt.getTimestampItem(
+                		SimGetprop.getProp("partitionkey"), 
+                		SimGetprop.getProp("partitionkey_value"),
+                		SimGetprop.getProp("dtpkey"));
         }
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
@@ -204,7 +178,7 @@ public class SimKinesisConsumeApp {
 		  System.exit(0);
 		}
     }
-
+    
 	/**
      * KCLクライアントを安全に停止
      */

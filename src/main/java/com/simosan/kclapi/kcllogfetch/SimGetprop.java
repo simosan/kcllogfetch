@@ -3,27 +3,46 @@ package com.simosan.kclapi.kcllogfetch;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
-public class SimGetprop {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	public Map<String, String> setProp(String path) {
+
+/** 
+ *　指定されたキーに対して、プロパティファイルを都度読み込み、値を取得する
+ *　都度ファイルの読み込みを行うため、ループ処理内で本staticメソッドは呼び出さないようにすること
+ *　初期化処理など、ワンショットの処理だけで利用すること
+ */
+ /* @author sim
+ *
+ */
+public class SimGetprop {
+	
+	private static final Logger log = LoggerFactory.getLogger(SimKinesisConsumeApp.class);
+	
+	public static String getProp(String key) {
+		
+		String path = null;
+		String val = null;
 		Properties properties = new Properties();
 
+		//実行時引数に指定したプロパティファイル(-Dproppath=絶対パス)を読み込む
+		path = System.getProperty("proppath");
 		try {
             InputStream istream = new FileInputStream(path);
             properties.load(istream);
         } catch (IOException e) {
-            e.printStackTrace();
+        	log.error("プロパティファイルが読み込めません！", e);
+        	System.exit(255);
         }
-		//プロパティファイルをMap（連想配列）に格納
-		Map<String, String> propMap = new HashMap<>();
-		for(Map.Entry<Object, Object> e : properties.entrySet()) {
-			propMap.put(e.getKey().toString(), e.getValue().toString());
-	    }
-		return propMap;
+		//プロパティファイルから指定したキーに対する値を取得
+		val = properties.getProperty(key);
+		if ( val == null) {
+			log.error("指定したキーに対する値が設定されていません。キー：" + key);
+        	System.exit(255);
+		}
+		
+		return val;
 	}
-
 }
