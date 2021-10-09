@@ -11,6 +11,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sts.StsAsyncClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
@@ -22,12 +23,12 @@ public class SimAssumeRoleCred {
 	private Region Rg;
 	private AssumeRoleResponse response;
 
-    private static final Logger log = LoggerFactory.getLogger(SimKinesisConsumeApp.class);
+    private static final Logger log = LoggerFactory.getLogger(SimAssumeRoleCred.class);
 	
 	/**
      * IAMロールで実行できるようにするため、AssumeRoleをロード
      */
-    public AwsCredentialsProvider loadCredentials()  {
+    public AwsCredentialsProvider loadCredentials(SdkAsyncHttpClient cl)  {
     	final AwsCredentialsProvider credentialsProvider;
     	
     	ProfileCredentialsProvider devProfile = ProfileCredentialsProvider.builder()
@@ -39,6 +40,7 @@ public class SimAssumeRoleCred {
     	StsAsyncClient stsAsyncClient = StsAsyncClient.builder()
                 .credentialsProvider(devProfile)
                 .region(Rg)
+                .httpClient(cl)
                 .build();
     	
     	AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
@@ -60,9 +62,9 @@ public class SimAssumeRoleCred {
 		
         Credentials credentials = response.credentials();
         AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(
-        													credentials.accessKeyId(),
-        													credentials.secretAccessKey(),
-        													credentials.sessionToken());
+        		credentials.accessKeyId(),
+        		credentials.secretAccessKey(),
+        		credentials.sessionToken());
         
         credentialsProvider =  AwsCredentialsProviderChain.builder()
                 .credentialsProviders(StaticCredentialsProvider.create(sessionCredentials))

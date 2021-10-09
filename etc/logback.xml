@@ -5,6 +5,7 @@
 
   <!-- ログ出力先ディレクトリ -->
   <property name="logDir" value="/Users/sim/log/" />
+  <!-- property name="logDir" value="C:/Users/simos_000/log/" / -->
   <!-- KCLSDKログのみ抽出し出力 -->
   <property name="sdklogfileName" value="kcllog_awssdklog.log" />
   <!-- 本APログのみ抽出し出力 -->

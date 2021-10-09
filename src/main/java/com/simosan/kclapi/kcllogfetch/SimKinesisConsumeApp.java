@@ -1,5 +1,6 @@
 package com.simosan.kclapi.kcllogfetch;
 
+
 /**
  * Kinesisコンシューマーのワーカー
  *
@@ -18,13 +19,18 @@ import org.slf4j.LoggerFactory;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+//import software.amazon.awssdk.http.SdkHttpClient;
+//import software.amazon.awssdk.http.apache.ApacheHttpClient;
+//import software.amazon.awssdk.http.apache.ProxyConfiguration;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient;
 import software.amazon.kinesis.common.ConfigsBuilder;
 import software.amazon.kinesis.common.InitialPositionInStreamExtended;
 import software.amazon.kinesis.coordinator.Scheduler;
-
 
 /** Kinesis Client Library（以降、KCL）を利用して、KinesisStreamのキューデータを読み込む。
  *  本プログラム実行前にKinesisStreamのセットアップを完了させておく必要がある。
@@ -41,16 +47,26 @@ public class SimKinesisConsumeApp {
     private static final Logger log = LoggerFactory.getLogger(SimKinesisConsumeApp.class);
     private Region region;
     private String tbName;
-
     private KinesisAsyncClient kinesisClient;
     private DynamoDbAsyncClient dynamoClient;
     private CloudWatchAsyncClient cloudWatchClient;
     private AwsCredentialsProvider credentialsProvider;
+    private ProxyConfiguration proxy;
+    private SdkAsyncHttpClient httpclient;
+  
 
     private SimKinesisConsumeApp() {
+    	// proxy設定
+    	this.proxy = ProxyConfiguration.builder()
+    			.host(SimGetprop.getProp("proxyhost"))
+    			.port(Integer.parseInt(SimGetprop.getProp("proxyport")))
+    			.build();
+        this.httpclient = NettyNioAsyncHttpClient.builder()
+        		.proxyConfiguration(this.proxy)
+        		.build();
     	//AssumeRoleをロード
     	SimAssumeRoleCred sarc = new SimAssumeRoleCred();
-    	this.credentialsProvider = sarc.loadCredentials();
+    	this.credentialsProvider = sarc.loadCredentials(httpclient);
     	// リージョン名（注意）書き方は東京リージョンの場合、ap-northeast-1にすること
         // v1.xのマニュアルではAP_NORTHEAST_1となっているが、V2.xではエラーになる
     	this.region = Region.of(SimGetprop.getProp("region"));
@@ -59,24 +75,26 @@ public class SimKinesisConsumeApp {
         this.dynamoClient = DynamoDbAsyncClient.builder()
         		.credentialsProvider(credentialsProvider)
         		.region(region)
+        		.httpClient(httpclient)
         		.build();
         // Cloudwatchクライアント（kinesisの状態をCloudwatchに出力）初期化
         this.cloudWatchClient = CloudWatchAsyncClient.builder()
         		.credentialsProvider(credentialsProvider)
         		.region(region)
+        		.httpClient(httpclient)
         		.build();
+        // Kinesisクライアント初期化
         this.kinesisClient = KinesisAsyncClient.builder()
         		.credentialsProvider(credentialsProvider)
         		.region(region)
+        		.httpClient(httpclient)
         		.build();
-        /**this.kinesisClient = KinesisClientUtil.createKinesisAsyncClient(KinesisAsyncClient.builder()
-        		.credentialsProvider(credentialsProvider)
-        		.region(region));**/
 
     }
     
     /**
      * メインメソッド
+     * @throws URISyntaxException 
      */
     public static void main(String[] args) {
     	
@@ -90,15 +108,16 @@ public class SimKinesisConsumeApp {
      */
     private void run() {
     	Date date = null;
+    	
     	    	
         ConfigsBuilder configsBuilder = new ConfigsBuilder(
-        		            SimGetprop.getProp("streamname"),
-        					SimGetprop.getProp("appname"),
-        					kinesisClient,
-        					dynamoClient,
-        					cloudWatchClient,
-        					UUID.randomUUID().toString(),
-        					new SimKinesisRecordProcessorFactory()
+        		SimGetprop.getProp("streamname"),
+        		SimGetprop.getProp("appname"),
+        		kinesisClient,
+        		dynamoClient,
+        		cloudWatchClient,
+        		UUID.randomUUID().toString(),
+        		new SimKinesisRecordProcessorFactory()
         );
 
         /**
@@ -117,13 +136,16 @@ public class SimKinesisConsumeApp {
         //タイムスタンプを遡りたいのであれば、DynamoDBのタイムスタンプを直接いじること。
         //スケジューラが起動したらそれ以降のポジショニングはKCLがいい感じにしてくれる
         tbName = SimGetprop.getProp("postbname");
-        SimKinesisConsumeAppDtPos skcadt = new SimKinesisConsumeAppDtPos(credentialsProvider, region, tbName);
-        String tmstr = null;
-
-        tmstr = skcadt.getTimestampItem(
+        SimKinesisConsumeAppDtPos skcadt = new SimKinesisConsumeAppDtPos(
+        		credentialsProvider,
+        		region,
+        		tbName,
+        		httpclient);
+      
+        String tmstr = skcadt.getTimestampItem(
         		SimGetprop.getProp("partitionkey"),
-            	SimGetprop.getProp("partitionkey_value"),
-            	SimGetprop.getProp("dtpkey"));
+        		SimGetprop.getProp("partitionkey_value"),
+        		SimGetprop.getProp("dtpkey"));
         
         // DynamoDBのdtpが空だったら最新のタイムスタンプに更新
         if (tmstr == null)
@@ -140,7 +162,7 @@ public class SimKinesisConsumeApp {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         try {
-            date = sdf.parse(tmstr);
+        	date = sdf.parse(tmstr);
         } catch(ParseException e) {
         	log.error("時刻のフォーマットがおかしいです。", e);
         	System.exit(255);
@@ -170,13 +192,13 @@ public class SimKinesisConsumeApp {
 
         try {
         	//子スレッドが終了したらKCLメインスレッドを正常に停止
-			schedulerThread.join();
-		} catch (InterruptedException e1) {
-			//例外を検知してもKCLメインスレッドを正常に停止
-			log.error("Main Thread InterruptedException Occur!");
-		} finally {
-		  System.exit(0);
-		}
+        	schedulerThread.join();
+        } catch (InterruptedException e1) {
+        	//例外を検知してもKCLメインスレッドを正常に停止
+        	log.error("Main Thread InterruptedException Occur!");
+        } finally {
+        	System.exit(0);
+        }
     }
     
 	/**

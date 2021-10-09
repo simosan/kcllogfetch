@@ -19,30 +19,29 @@ import org.slf4j.LoggerFactory;
  */
 public class SimGetprop {
 	
-	private static final Logger log = LoggerFactory.getLogger(SimKinesisConsumeApp.class);
-	
-	public static String getProp(String key) {
-		
-		String path = null;
-		String val = null;
-		Properties properties = new Properties();
+    private static final Logger log = LoggerFactory.getLogger(SimGetprop.class);
 
-		//実行時引数に指定したプロパティファイル(-Dproppath=絶対パス)を読み込む
-		path = System.getProperty("proppath");
-		try {
-            InputStream istream = new FileInputStream(path);
-            properties.load(istream);
-        } catch (IOException e) {
-        	log.error("プロパティファイルが読み込めません！", e);
-        	System.exit(255);
-        }
-		//プロパティファイルから指定したキーに対する値を取得
-		val = properties.getProperty(key);
-		if ( val == null) {
-			log.error("指定したキーに対する値が設定されていません。キー：" + key);
-        	System.exit(255);
-		}
-		
-		return val;
-	}
+    public static String getProp(String key) {
+
+    	String path = null;
+    	String val = null;
+    	Properties properties = new Properties();
+
+    	//実行時引数に指定したプロパティファイル(-Dproppath=絶対パス)を読み込む
+    	path = System.getProperty("proppath");
+    	try {
+    		InputStream istream = new FileInputStream(path);
+    		properties.load(istream);
+    	} catch (IOException e) {
+    		log.error("プロパティファイルが読み込めません！", e);
+    		System.exit(255);
+    	}
+    	//プロパティファイルから指定したキーに対する値を取得
+    	val = properties.getProperty(key);
+    	if ( val == null) {
+    		log.error("指定したキーに対する値が設定されていません。キー：" + key);
+    		System.exit(255);
+    	}
+    	return val;
+    }
 }

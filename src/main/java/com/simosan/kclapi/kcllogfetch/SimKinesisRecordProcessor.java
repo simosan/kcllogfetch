@@ -14,6 +14,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
+import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.kinesis.exceptions.InvalidStateException;
 import software.amazon.kinesis.exceptions.ShutdownException;
@@ -34,6 +37,8 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor{
 	private SimKinesisConsumeAppDtPos skcadt;
     private Region region;
     private String tbName;
+    private ProxyConfiguration proxy;
+    private SdkAsyncHttpClient httpclient;
     
     /**
      * ShardRecordProcessor（processRecords）からのデータ配信前にKCLによって初期化
@@ -45,14 +50,22 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor{
         log.warn("Initializing record processor for shard: " + initializationInput.shardId());
         log.warn("- Initializing @ Sequence: " + initializationInput.extendedSequenceNumber());
         
+       	// proxy設定
+    	this.proxy = ProxyConfiguration.builder()
+    			.host(SimGetprop.getProp("proxyhost"))
+    			.port(Integer.parseInt(SimGetprop.getProp("proxyport")))
+    			.build();
+        this.httpclient = NettyNioAsyncHttpClient.builder()
+        		.proxyConfiguration(this.proxy)
+        		.build();
         
     	//AssumeRoleをロード
     	SimAssumeRoleCred sarc = new SimAssumeRoleCred();
-    	credentialsProvider = sarc.loadCredentials();
+    	credentialsProvider = sarc.loadCredentials(httpclient);
 
     	region = Region.of(SimGetprop.getProp("region"));
     	tbName = SimGetprop.getProp("postbname");
-        skcadt = new SimKinesisConsumeAppDtPos(credentialsProvider, region, tbName);
+        skcadt = new SimKinesisConsumeAppDtPos(credentialsProvider, region, tbName, httpclient);
                 
     }
     

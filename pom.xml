@@ -17,22 +17,32 @@
   </properties>
 
   <build>
+    <resources>
+      <resource>
+        <directory>${project.basedir}</directory>
+        <includes>
+            <include>etc/*</include>
+        </includes>
+      </resource>
+    </resources> 
     <plugins>
+      <!-- 実行可能Jarファイルのビルド -->
       <plugin>
-        <!-- 実行可能Jarファイルのビルド -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.1.0</version>
         <configuration>
           <archive>
             <manifest>
+              <addClasspath>true</addClasspath>
               <mainClass>com.simosan.kclapi.kcllogfetch.SimKinesisConsumeApp</mainClass>
+              <classpathPrefix>${project.build.directory}/dependency-jars/</classpathPrefix>
             </manifest>
           </archive>
         </configuration>
       </plugin>
+      <!-- プロジェクトの依存関係ライブラリをコピー --> 
       <plugin>
-        <!-- Build an executable JAR with runtime dependencies so that this program can be executed from command line using java -jar command -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
         <version>3.2.0</version>
@@ -44,7 +54,7 @@
                     <goal>copy-dependencies</goal>
                 </goals>
                 <configuration>
-                    <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                    <outputDirectory>${project.build.directory}/dependency-jars/</outputDirectory>
                     <overWriteReleases>false</overWriteReleases>
                     <overWriteSnapshots>false</overWriteSnapshots>
                     <overWriteIfNewer>true</overWriteIfNewer>
@@ -77,6 +87,12 @@
       <artifactId>dynamodb</artifactId>
       <version>2.7.33</version>
     </dependency>
+     <!-- proxy設定を行う場合は以下を追加 -->
+	<dependency>
+		<groupId>software.amazon.awssdk</groupId>
+		<artifactId>netty-nio-client</artifactId>
+		<version>2.7.33</version>
+	</dependency>
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>profiles</artifactId>
