@@ -10,17 +10,21 @@ import org.slf4j.LoggerFactory;
 
 
 /** 
- *　指定されたキーに対して、プロパティファイルを都度読み込み、値を取得する
- *　都度ファイルの読み込みを行うため、ループ処理内で本staticメソッドは呼び出さないようにすること
+ * 指定されたキーに対して、プロパティファイルを都度読み込み、値を取得する
+ *　都度ファイルの読み込みを行うため、ループ処理内で本staticメソッドは呼び出さないこと
  *　初期化処理など、ワンショットの処理だけで利用すること
  */
  /* @author sim
- *
+  * 
  */
 public class SimGetprop {
 	
     private static final Logger log = LoggerFactory.getLogger(SimGetprop.class);
 
+	/**
+	 * @param key プロパティファイルのキー
+	 * @return キーに紐づく値
+	 */
     public static String getProp(String key) {
 
     	String path = null;

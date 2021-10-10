@@ -3,4 +3,5 @@ etc/logback.xml.*
 target/
 .settings/
 bk/
-
+.classpath/
+.projecta/

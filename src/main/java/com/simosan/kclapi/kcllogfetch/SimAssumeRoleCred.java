@@ -19,37 +19,39 @@ import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 public class SimAssumeRoleCred {
-	
+
 	private Region Rg;
 	private AssumeRoleResponse response;
 
-    private static final Logger log = LoggerFactory.getLogger(SimAssumeRoleCred.class);
-	
+	private static final Logger log = LoggerFactory.getLogger(SimAssumeRoleCred.class);
+
 	/**
-     * IAMロールで実行できるようにするため、AssumeRoleをロード
-     */
-    public AwsCredentialsProvider loadCredentials(SdkAsyncHttpClient cl)  {
-    	final AwsCredentialsProvider credentialsProvider;
-    	
-    	ProfileCredentialsProvider devProfile = ProfileCredentialsProvider.builder()
-                .profileName(SimGetprop.getProp("prof"))
-                .build();
-    	
-        Rg = Region.of(SimGetprop.getProp("region"));
-        
-    	StsAsyncClient stsAsyncClient = StsAsyncClient.builder()
-                .credentialsProvider(devProfile)
-                .region(Rg)
-                .httpClient(cl)
-                .build();
-    	
-    	AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
-                .durationSeconds(3600)
-                .roleArn(SimGetprop.getProp("rolearn"))
-                .roleSessionName(SimGetprop.getProp("rolesesname"))
-                .build();
-    	
-    	Future<AssumeRoleResponse> responseFuture = stsAsyncClient.assumeRole(assumeRoleRequest);
+	 * IAMロールで実行できるようにするため、AssumeRoleをロード
+	 * @param cl プロキシ情報
+	 * @return AWS認証情報を返却
+	 */
+	public AwsCredentialsProvider loadCredentials(SdkAsyncHttpClient cl)  {
+		final AwsCredentialsProvider credentialsProvider;
+
+		ProfileCredentialsProvider devProfile = ProfileCredentialsProvider.builder()
+				.profileName(SimGetprop.getProp("prof"))
+				.build();
+
+		Rg = Region.of(SimGetprop.getProp("region"));
+
+		StsAsyncClient stsAsyncClient = StsAsyncClient.builder()
+				.credentialsProvider(devProfile)
+				.region(Rg)
+				.httpClient(cl)
+				.build();
+
+		AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
+				.durationSeconds(3600)
+				.roleArn(SimGetprop.getProp("rolearn"))
+				.roleSessionName(SimGetprop.getProp("rolesesname"))
+				.build();
+
+		Future<AssumeRoleResponse> responseFuture = stsAsyncClient.assumeRole(assumeRoleRequest);
 		try {
 			response = responseFuture.get();
 		} catch (InterruptedException e) {
@@ -59,18 +61,18 @@ public class SimAssumeRoleCred {
 			log.error("AssumeRole ExecutionException!", e);
 			System.exit(255);
 		}
-		
-        Credentials credentials = response.credentials();
-        AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(
-        		credentials.accessKeyId(),
-        		credentials.secretAccessKey(),
-        		credentials.sessionToken());
-        
-        credentialsProvider =  AwsCredentialsProviderChain.builder()
-                .credentialsProviders(StaticCredentialsProvider.create(sessionCredentials))
-                .build();
-        
-        return credentialsProvider;
-    	
-    }
+
+		Credentials credentials = response.credentials();
+		AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(
+				credentials.accessKeyId(),
+				credentials.secretAccessKey(),
+				credentials.sessionToken());
+
+		credentialsProvider =  AwsCredentialsProviderChain.builder()
+				.credentialsProviders(StaticCredentialsProvider.create(sessionCredentials))
+				.build();
+
+		return credentialsProvider;
+
+	}
 }
