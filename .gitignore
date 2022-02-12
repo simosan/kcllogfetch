@@ -2,6 +2,6 @@ kcllogfetch.properties*
 etc/logback.xml.*
 target/
 .settings/
-.classpath/
-.project/
+.classpath
+.project
 bk/

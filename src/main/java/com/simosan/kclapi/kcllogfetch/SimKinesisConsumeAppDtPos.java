@@ -1,3 +1,4 @@
+
 package com.simosan.kclapi.kcllogfetch;
 
 import java.text.SimpleDateFormat;
