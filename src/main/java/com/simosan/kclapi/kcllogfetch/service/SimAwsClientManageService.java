@@ -5,10 +5,6 @@ import java.util.UUID;
 
 import com.simosan.kclapi.kcllogfetch.common.SimGetprop;
 import com.simosan.kclapi.kcllogfetch.processor.SimKinesisRecordProcessorFactory;
-
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
