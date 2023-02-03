@@ -5,3 +5,7 @@ target/
 .classpath
 .project
 bk/
+etc/bk
+.DS_Store
+.kcllogfetch.properties.icloud
+src/main/java/com/simosan/kclapi/.DS_Store

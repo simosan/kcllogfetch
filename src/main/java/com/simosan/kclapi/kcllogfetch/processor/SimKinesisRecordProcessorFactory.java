@@ -1,9 +1,9 @@
-package com.simosan.kclapi.kcllogfetch;
+package com.simosan.kclapi.kcllogfetch.processor;
 
 import software.amazon.kinesis.processor.ShardRecordProcessor;
 import software.amazon.kinesis.processor.ShardRecordProcessorFactory;
 
-public class SimKinesisRecordProcessorFactory implements ShardRecordProcessorFactory{
+public class SimKinesisRecordProcessorFactory implements ShardRecordProcessorFactory {
 
 	public SimKinesisRecordProcessorFactory() {
 

@@ -39,10 +39,10 @@
   </logger>
   
 
-  <!-- 本APが出力するAPログ（WARN以上のみ） -->
+  <!-- 本APが出力するAPログ（INFO以上のみ） -->
   <appender name="AP_FILE" class="ch.qos.logback.core.FileAppender">
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-        <level>WARN</level>
+        <level>INFO</level>
     </filter>
     <file>${logDir}${aplogfileName}</file>
     <encoder>
