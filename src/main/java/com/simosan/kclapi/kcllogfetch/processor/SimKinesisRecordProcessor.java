@@ -2,7 +2,6 @@ package com.simosan.kclapi.kcllogfetch.processor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.simosan.kclapi.kcllogfetch.domain.SimKinesisExtractDataUnprocessed;
 import com.simosan.kclapi.kcllogfetch.domain.SimkinesisExtractData;
 import com.simosan.kclapi.kcllogfetch.inflastructure.SimKinesisDataExport;

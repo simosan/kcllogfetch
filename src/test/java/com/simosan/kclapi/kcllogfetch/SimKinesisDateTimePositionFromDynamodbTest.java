@@ -4,6 +4,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -23,8 +24,22 @@ public class SimKinesisDateTimePositionFromDynamodbTest {
 
 	@Before
 	public void setUp() throws Exception {
+		//正のプロパティファイルを退避
+		File moto = new File(
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/kcllogfetch.properties");
+		File taihi = new File(
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/kcllogfetch.properties.taihi");
+		moto.renameTo(taihi);
+		
+		// 本テストのプロパティファイルを正にする
+		File neta = new File(
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/SimPropertyCheck_EndpointURIパターン_正常系.properties");
+		File sei = new File(
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/kcllogfetch.properties");
+		neta.renameTo(sei);
+		
 		String cmd1 = "/opt/homebrew/bin/aws dynamodb create-table "
-	            + "--table-name SimKinesisConsumeAppDateTimePos "
+	            + "--table-name SimKinesisConsumeAppDatePosTbl "
 				+ "--attribute-definitions AttributeName=LogGroupKey,AttributeType=S "
 				+ "--key-schema AttributeName=LogGroupKey,KeyType=HASH "
 				+ "--provisioned-throughput ReadCapacityUnits=5,WriteCapacityUnits=5 "
@@ -71,6 +86,20 @@ public class SimKinesisDateTimePositionFromDynamodbTest {
 			log.error("DynamoDBテーブルの削除に失敗しました!!!!");
 			e.printStackTrace();
 		}
+		
+		// 本テストのプロパティファイルを戻す
+		File testmodosi = new File(
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/kcllogfetch.properties");
+		File netamodosi = new File(
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/SimPropertyCheck_EndpointURIパターン_正常系.properties");
+		testmodosi.renameTo(netamodosi);
+		
+		//退避したプロパティファイルを戻す
+		File seitaihi = new File(
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/kcllogfetch.properties.taihi");
+		File seimodosi = new File(
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/kcllogfetch.properties");
+		seitaihi.renameTo(seimodosi);
 	}
 
 	@Test
