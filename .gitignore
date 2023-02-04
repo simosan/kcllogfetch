@@ -1,5 +1,6 @@
 etc/logback.xml.*
 target/
+work/
 .settings/
 .classpath
 .project

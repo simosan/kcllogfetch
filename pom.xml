@@ -38,12 +38,8 @@
 							<classpathPrefix>${project.build.directory}/dependency-jars/</classpathPrefix>
 						</manifest>
 						<manifestEntries>
-							<!-- JARの外でクラスパスを指定（その１：logback.xml用） -->
-							<Class-Path>./logback/</Class-Path>
-						</manifestEntries>
-						<manifestEntries>
-							<!-- JARの外でクラスパスを指定（その２：propertiesファイル用） -->
-							<Class-Path>./properties/</Class-Path>
+							<!-- JARの外でクラスパスを指定 -->
+							<Class-Path>./config/</Class-Path>
 						</manifestEntries>
 					</archive>
 				</configuration>
