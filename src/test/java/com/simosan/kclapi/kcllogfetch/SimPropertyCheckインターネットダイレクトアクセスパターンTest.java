@@ -1,9 +1,7 @@
 package com.simosan.kclapi.kcllogfetch;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
 
+import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -71,7 +69,7 @@ public class SimPropertyCheckインターネットダイレクトアクセスパ
 		}
 		log.info("=================================================");
 		assertEquals(spc.chkPropertyfile(),true);
-		assertThat(spc.getConnectType(),is("DIRECT"));
+		//assertThat(spc.getConnectType(),is("DIRECT"));
 				
 	}
 }

@@ -6,12 +6,6 @@ import org.slf4j.LoggerFactory;
 public class SimPropertyCheck {
 	
 	private static final Logger log = LoggerFactory.getLogger(SimPropertyCheck.class);
-	private enum CONNECTTYPE {
-	    DIRECT,
-	    ENDPOINTURI,
-	    PROXY;
-	}
-	private CONNECTTYPE con;
 	
 	public boolean chkPropertyfile() {		
 		//プロパティファイルのチェック - インターネットダイレクトアクセスパターン/EndpointURI指定ありパターン/プロキシ指定ありパターン
@@ -61,29 +55,6 @@ public class SimPropertyCheck {
 			log.error("SimPropertyCheck.chkPropertyfile - プロパティファイルのtimezoneidが空です");
 			return false;
 		}
-		
-		/// インターネットダイレクトアクセスパターン
-		if (SimGetprop.getProp("proxyhost").isEmpty() && SimGetprop.getProp("proxyport").isEmpty()
-				&& SimGetprop.getProp("endpointuri").isEmpty()) {
-			con = CONNECTTYPE.DIRECT;
-		}
-		
-		/// EndpointURI指定ありパターン
-		if (SimGetprop.getProp("proxyhost").isEmpty() && SimGetprop.getProp("proxyport").isEmpty()
-				&& !SimGetprop.getProp("endpointuri").isEmpty()) {
-			con = CONNECTTYPE.ENDPOINTURI;
-		}
-		
-		/// プロキシ指定ありパターン
-		if (!SimGetprop.getProp("proxyhost").isEmpty() && !SimGetprop.getProp("proxyport").isEmpty()
-				&& SimGetprop.getProp("endpointuri").isEmpty()) {
-			con = CONNECTTYPE.PROXY;
-		}
 		return true;
 	}
-	
-	public String getConnectType() {
-		return con.toString();
-	}
-
 }

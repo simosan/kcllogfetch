@@ -1,6 +1,8 @@
 package com.simosan.kclapi.kcllogfetch;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,11 +15,16 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simosan.kclapi.kcllogfetch.common.SimPropertyCheck;
+import com.simosan.kclapi.kcllogfetch.common.SimGetprop;
+import com.simosan.kclapi.kcllogfetch.service.awsconnection.EndpointUriConnection;
+
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.kinesis.common.ConfigsBuilder;
 
 
-public class SimPropertyCheckEndpointURIパターンTest {
-	private static final Logger log = LoggerFactory.getLogger(SimPropertyCheckEndpointURIパターンTest.class);
+public class EndpointUriConnectionTest {
+	private static final Logger log = LoggerFactory.getLogger(EndpointUriConnectionTest.class);
 	
 	@Before
 	public void setUp() throws Exception {
@@ -54,9 +61,8 @@ public class SimPropertyCheckEndpointURIパターンTest {
     }
 	
 	@Test
-	public void SimPropertyCheck_EndpointURIパターン_正常系() throws Exception{
+	public void EndpointUriConnection_正常系() throws Exception{
 		
-        SimPropertyCheck spc = new SimPropertyCheck();
         Properties properties = new Properties();
         String path = System.getProperty("proppath");
 		try {
@@ -67,7 +73,13 @@ public class SimPropertyCheckEndpointURIパターンTest {
 			System.exit(255);
 		}
 		log.info("=================================================");
-		assertEquals(spc.chkPropertyfile(),true);
+		EndpointUriConnection euc = new EndpointUriConnection(SimGetprop.getProp("endpointuri"));
+		euc.retriveconfigsBuilder();
+		euc.retriveCredentialProvider();
+		euc.retriveRegion();
+		assertThat(euc.retriveconfigsBuilder(),is(instanceOf(ConfigsBuilder.class)));
+		assertThat(euc.retriveCredentialProvider(),is(instanceOf(AwsCredentialsProvider.class)));
+		assertThat(euc.retriveRegion(),is(instanceOf(Region.class)));
 				
 	}
 }

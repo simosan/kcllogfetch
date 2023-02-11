@@ -2,16 +2,17 @@ package com.simosan.kclapi.kcllogfetch.processor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.simosan.kclapi.kcllogfetch.common.SimGetprop;
 import com.simosan.kclapi.kcllogfetch.domain.SimKinesisExtractDataUnprocessed;
 import com.simosan.kclapi.kcllogfetch.domain.SimkinesisExtractData;
 import com.simosan.kclapi.kcllogfetch.inflastructure.SimKinesisDataExport;
 import com.simosan.kclapi.kcllogfetch.inflastructure.SimKinesisDataExportlog;
-import com.simosan.kclapi.kcllogfetch.service.SimAwsClientManageService;
+import com.simosan.kclapi.kcllogfetch.service.SimAwsConnectionManageService;
 import com.simosan.kclapi.kcllogfetch.service.SimKinesisDataExportProcessorService;
-import com.simosan.kclapi.kcllogfetch.service.SimKinesisDateTimePositionFromDynamodb;
+import com.simosan.kclapi.kcllogfetch.service.awsconnection.ConnectionType;
+import com.simosan.kclapi.kcllogfetch.service.KinesisDateTimePosition;
 
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.kinesis.exceptions.InvalidStateException;
 import software.amazon.kinesis.exceptions.ShutdownException;
 import software.amazon.kinesis.lifecycle.events.InitializationInput;
@@ -26,8 +27,6 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor {
 	// slf4jでログに出力したりコンソコールに出力したりする。（logback.xmlがなければコンソール出力）
 	private static final Logger log = LoggerFactory.getLogger(SimKinesisRecordProcessor.class);
 	private String shardId;
-	private AwsCredentialsProvider credentialsProvider;
-	private Region region;
 	private SimKinesisDataExportProcessorService svc;
 	// private String endpointuri;
 
@@ -39,6 +38,7 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor {
 	 */
 	@Override
 	public void initialize(InitializationInput initializationInput) {
+		
 		this.shardId = initializationInput.shardId();
 		log.info("SimKinesisRecordProcessor.initialize - DEBUG-initialize");
 		log.info("SimKinesisRecordProcessor.initialize - Initializing record processor for shard: "
@@ -46,42 +46,17 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor {
 		log.info("SimKinesisRecordProcessor.initialize - Initializing @ Sequence: "
 				+ initializationInput.extendedSequenceNumber());
 
-		// インターネットダイレクト
-		SimAwsClientManageService sacms = new SimAwsClientManageService();
-		credentialsProvider = sacms.retriveCredentialProvider();
-		region = sacms.retriveRegion();
-		SimKinesisDateTimePositionFromDynamodb skdtfd = new SimKinesisDateTimePositionFromDynamodb(credentialsProvider,
-				region);
+		// 各種AWSサービスのアクセス方法（InternetDirect or EndpointURI or Proxy）を選択
+		SimAwsConnectionManageService sacms = new SimAwsConnectionManageService();
+		ConnectionType con = sacms.retriveConnection();
+		// Streamメッセージ取得後のタイムポジション（DynamoDB）更新用インスタンス取得
+		KinesisDateTimePosition skdtfd = new KinesisDateTimePosition(con.retriveDynamoClient(), SimGetprop.getProp("postbname"));
+		
+		// Streamメッセージの抽出方法と出力先を指定
 		SimkinesisExtractData sked = new SimKinesisExtractDataUnprocessed();
 		SimKinesisDataExport skde = new SimKinesisDataExportlog();
 		svc = new SimKinesisDataExportProcessorService(sked, skde, skdtfd);
 
-		// EndpointURI設定
-		/*
-		 * SimAwsClientManageService sacms = new
-		 * SimAwsClientManageService(SimGetprop.getProp("endpointuri"));
-		 * credentialsProvider = sacms.retriveCredentialProvider(); region =
-		 * sacms.retriveRegion(); endpointuri = SimGetprop.getProp("endpointuri");
-		 * skdtfd = new SimKinesisDateTimePositionFromDynamodb(credentialsProvider,
-		 * region, endpointuri);
-		 */
-
-		// proxy設定
-		/*
-		 * this.proxy =
-		 * ProxyConfiguration.builder().host(SimGetprop.getProp("proxyhost"))
-		 * .port(Integer.parseInt(SimGetprop.getProp("proxyport"))).build();
-		 * this.httpclient =
-		 * NettyNioAsyncHttpClient.builder().proxyConfiguration(this.proxy).build();
-		 * 
-		 * // AssumeRoleをロード SimAssumeRoleCred sarc = new SimAssumeRoleCred(httpclient);
-		 * credentialsProvider = sarc.loadCredentials();
-		 * 
-		 * region = Region.of(SimGetprop.getProp("region")); tbName =
-		 * SimGetprop.getProp("postbname"); skcadt = new
-		 * SimKinesisDateTimePositionFromDynamodb(credentialsProvider, region,
-		 * httpclient);
-		 */
 	}
 
 	/**

@@ -30,7 +30,7 @@ public class SimAssumeRoleCred {
 	private static final Logger log = LoggerFactory.getLogger(SimAssumeRoleCred.class);
 
 	// Endpoint&プロキシ指定なし（InternetDirect）
-	public SimAssumeRoleCred() {
+	public SimAssumeRoleCred() throws Exception {
 		ProfileCredentialsProvider devProfile = ProfileCredentialsProvider.builder()
 				.profileName(SimGetprop.getProp("prof")).build();
 		Rg = Region.of(SimGetprop.getProp("region"));
@@ -42,10 +42,12 @@ public class SimAssumeRoleCred {
 			response = responseFuture.get();
 		} catch (InterruptedException e) {
 			log.error("SimAssumeRoleCred - AssumeRole InterruptedException!", e);
-			System.exit(255);
+			//System.exit(255);
+			throw new Exception();
 		} catch (ExecutionException e) {
 			log.error("SimAssumeRoleCred - AssumeRole ExecutionException!", e);
-			System.exit(255);
+			//System.exit(255);
+			throw new Exception();
 		}
 		Credentials credentials = response.credentials();
 		AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(credentials.accessKeyId(),
@@ -56,7 +58,7 @@ public class SimAssumeRoleCred {
 	}
 
 	// EndpointURI指定（プロキシなし）
-	public SimAssumeRoleCred(URI endpointuri) {
+	public SimAssumeRoleCred(URI endpointuri) throws Exception {
 		ProfileCredentialsProvider devProfile = ProfileCredentialsProvider.builder()
 				.profileName(SimGetprop.getProp("prof")).build();
 		Rg = Region.of(SimGetprop.getProp("region"));
@@ -69,10 +71,12 @@ public class SimAssumeRoleCred {
 			response = responseFuture.get();
 		} catch (InterruptedException e) {
 			log.error("SimAssumeRoleCred - AssumeRole InterruptedException!", e);
-			System.exit(255);
+			//System.exit(255);
+			throw new Exception();
 		} catch (ExecutionException e) {
 			log.error("SimAssumeRoleCred - AssumeRole ExecutionException!", e);
-			System.exit(255);
+			//System.exit(255);
+			throw new Exception();
 		}
 		Credentials credentials = response.credentials();
 		AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(credentials.accessKeyId(),
@@ -85,8 +89,9 @@ public class SimAssumeRoleCred {
 	/**
 	 * プロキシ指定あり(EndpointURI指定なし）
 	 * @param cl
+	 * @throws Exception 
 	 */
-	public SimAssumeRoleCred(SdkAsyncHttpClient cl) {
+	public SimAssumeRoleCred(SdkAsyncHttpClient cl) throws Exception {
 		ProfileCredentialsProvider devProfile = ProfileCredentialsProvider.builder()
 				.profileName(SimGetprop.getProp("prof")).build();
 		Rg = Region.of(SimGetprop.getProp("region"));
@@ -99,10 +104,10 @@ public class SimAssumeRoleCred {
 			response = responseFuture.get();
 		} catch (InterruptedException e) {
 			log.error("SimAssumeRoleCred - AssumeRole InterruptedException!", e);
-			System.exit(255);
+			throw new Exception();
 		} catch (ExecutionException e) {
 			log.error("SimAssumeRoleCred - AssumeRole ExecutionException!", e);
-			System.exit(255);
+			throw new Exception();
 		}
 		Credentials credentials = response.credentials();
 		AwsSessionCredentials sessionCredentials = AwsSessionCredentials.create(credentials.accessKeyId(),

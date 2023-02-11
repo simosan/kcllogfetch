@@ -1,6 +1,5 @@
 package com.simosan.kclapi.kcllogfetch.service;
 
-import java.net.URI;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
@@ -17,9 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import com.simosan.kclapi.kcllogfetch.common.SimGetprop;
 
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -29,39 +25,17 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
 
-public class SimKinesisDateTimePositionFromDynamodb {
+public class KinesisDateTimePosition {
 
-	private static final Logger log = LoggerFactory.getLogger(SimKinesisDateTimePositionFromDynamodb.class);
+	private static final Logger log = LoggerFactory.getLogger(KinesisDateTimePosition.class);
 	private final String tbName;
 	private DynamoDbAsyncClient dynamoClient;
 
-	// インターネットダイレクトアクセス
-	public SimKinesisDateTimePositionFromDynamodb(final AwsCredentialsProvider credentialsProvider,
-			final Region region) {
+	public KinesisDateTimePosition(final DynamoDbAsyncClient dynamoClient, final String tbName) {
 
-		this.dynamoClient = DynamoDbAsyncClient.builder().credentialsProvider(credentialsProvider).region(region)
-				.build();
-		this.tbName = SimGetprop.getProp("postbname");
+		this.dynamoClient = dynamoClient;
+		this.tbName = tbName;
 
-	}
-
-	// EndpointURI経由
-	public SimKinesisDateTimePositionFromDynamodb(final AwsCredentialsProvider credentialsProvider, final Region region,
-			final String endpointuri) {
-
-		this.dynamoClient = DynamoDbAsyncClient.builder().credentialsProvider(credentialsProvider).region(region)
-				.endpointOverride(URI.create(endpointuri)).build();
-		this.tbName = SimGetprop.getProp("postbname");
-
-	}
-
-	// proxy経由
-	public SimKinesisDateTimePositionFromDynamodb(final AwsCredentialsProvider credentialsProvider, final Region region,
-			final SdkAsyncHttpClient httpclient) {
-
-		this.dynamoClient = DynamoDbAsyncClient.builder().region(region).credentialsProvider(credentialsProvider)
-				.httpClient(httpclient).build();
-		this.tbName = SimGetprop.getProp("postbname");
 	}
 
 	// 起動時はDynamoDBのSimKinesisConsumeAppDateTimePosテーブルから存在する最新のタイムスタンプを取得

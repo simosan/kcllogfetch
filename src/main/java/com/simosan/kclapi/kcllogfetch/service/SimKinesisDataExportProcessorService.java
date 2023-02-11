@@ -14,10 +14,10 @@ public class SimKinesisDataExportProcessorService {
 	private static final Logger log = LoggerFactory.getLogger(SimKinesisDataExportProcessorService.class);
 	private final SimkinesisExtractData ed;
 	private final SimKinesisDataExport de;
-	private final SimKinesisDateTimePositionFromDynamodb skdtfd;
+	private final KinesisDateTimePosition skdtfd;
 
 	public SimKinesisDataExportProcessorService(SimkinesisExtractData sked, SimKinesisDataExport skde,
-			SimKinesisDateTimePositionFromDynamodb db) {
+			KinesisDateTimePosition db) {
 		this.ed = sked;
 		this.de = skde;
 		this.skdtfd = db;

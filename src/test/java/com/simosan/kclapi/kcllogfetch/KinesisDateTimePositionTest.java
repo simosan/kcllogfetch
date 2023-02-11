@@ -14,12 +14,13 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simosan.kclapi.kcllogfetch.service.SimAwsClientManageService;
-import com.simosan.kclapi.kcllogfetch.service.SimKinesisDateTimePositionFromDynamodb;
+import com.simosan.kclapi.kcllogfetch.service.awsconnection.EndpointUriConnection;
+import com.simosan.kclapi.kcllogfetch.common.SimGetprop;
+import com.simosan.kclapi.kcllogfetch.service.KinesisDateTimePosition;
 
-public class SimKinesisDateTimePositionFromDynamodbTest {
+public class KinesisDateTimePositionTest {
 
-	private static final Logger log = LoggerFactory.getLogger(SimKinesisDateTimePositionFromDynamodbTest.class);
+	private static final Logger log = LoggerFactory.getLogger(KinesisDateTimePositionTest.class);
 	private final String endpointuri = "http://simubu:4566";
 
 	@Before
@@ -104,9 +105,8 @@ public class SimKinesisDateTimePositionFromDynamodbTest {
 
 	@Test
 	public void retrieveTimeposition_EndpointURIパターン_正常系() throws Exception {
-		SimAwsClientManageService sacms = new SimAwsClientManageService(endpointuri);
-		SimKinesisDateTimePositionFromDynamodb skdtpfd = new SimKinesisDateTimePositionFromDynamodb(
-				sacms.retriveCredentialProvider(), sacms.retriveRegion(), endpointuri);
+		EndpointUriConnection euc = new EndpointUriConnection(endpointuri);
+		KinesisDateTimePosition skdtpfd = new KinesisDateTimePosition(euc.retriveDynamoClient(),SimGetprop.getProp("postbname"));
 		log.info("=================================================");
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 		Date hikakudt = sdf.parse("2022-01-01T11:00:00");
@@ -117,9 +117,8 @@ public class SimKinesisDateTimePositionFromDynamodbTest {
 	
 	@Test
 	public void updateTimestampItem_EndpointURIパターン_正常系() throws Exception {
-		SimAwsClientManageService sacms = new SimAwsClientManageService(endpointuri);
-		SimKinesisDateTimePositionFromDynamodb skdtpfd = new SimKinesisDateTimePositionFromDynamodb(
-				sacms.retriveCredentialProvider(), sacms.retriveRegion(), endpointuri);
+		EndpointUriConnection euc = new EndpointUriConnection(endpointuri);
+		KinesisDateTimePosition skdtpfd = new KinesisDateTimePosition(euc.retriveDynamoClient(),SimGetprop.getProp("postbname"));
 		log.info("=================================================");
 		skdtpfd.updateTimestampItem("DataGroupKey", "kimoemoji", "timeposition");
 		assertThat(skdtpfd.retrieveTimeposition(), notNullValue());

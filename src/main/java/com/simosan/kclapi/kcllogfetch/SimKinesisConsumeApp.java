@@ -12,12 +12,12 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.simosan.kclapi.kcllogfetch.service.SimAwsClientManageService;
-import com.simosan.kclapi.kcllogfetch.service.SimKinesisDateTimePositionFromDynamodb;
+import com.simosan.kclapi.kcllogfetch.common.SimGetprop;
+import com.simosan.kclapi.kcllogfetch.common.SimPropertyCheck;
+import com.simosan.kclapi.kcllogfetch.service.SimAwsConnectionManageService;
+import com.simosan.kclapi.kcllogfetch.service.awsconnection.ConnectionType;
+import com.simosan.kclapi.kcllogfetch.service.KinesisDateTimePosition;
 
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-//import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.kinesis.common.ConfigsBuilder;
 import software.amazon.kinesis.common.InitialPositionInStreamExtended;
 import software.amazon.kinesis.coordinator.Scheduler;
@@ -35,15 +35,18 @@ public class SimKinesisConsumeApp {
 
 	private static final Logger log = LoggerFactory.getLogger(SimKinesisConsumeApp.class);
 	private ConfigsBuilder configsBuilder;
-	private Region region;
-	private AwsCredentialsProvider credentialsProvider;
-	//private SdkAsyncHttpClient httpclient;
-	//private String endpointuri;
 
 	/**
 	 * メインメソッド
 	 */
 	public static void main(String[] args) {
+		// プロパティファイルのチェック
+		SimPropertyCheck spc = new SimPropertyCheck();
+		if(!spc.chkPropertyfile()) {
+			log.error("引数に誤りがあります");
+			System.exit(255);
+		}
+		
 		log.warn("MainThread Start!");
 		new SimKinesisConsumeApp().run();
 	}
@@ -54,25 +57,13 @@ public class SimKinesisConsumeApp {
 	 */
 	private void run() {
 
-		// インターネットダイレクト
-		SimAwsClientManageService sacms = new SimAwsClientManageService();
-		configsBuilder = sacms.retriveconfigsBuilder();
-		credentialsProvider = sacms.retriveCredentialProvider();
-		region = sacms.retriveRegion();
-				
-		// EndpointURI指定
-		/*SimAwsClientManageService sacms = new SimAwsClientManageService(SimGetprop.getProp("endpointuri"));
-		configsBuilder = sacms.retriveconfigsBuilder();
-		credentialsProvider = sacms.retriveCredentialProvider();
-		region = sacms.retriveRegion();
-		endpointuri = SimGetprop.getProp("endpointuri");*/
+		// 各種AWSサービスのアクセス方法（InternetDirect or EndpointURI or Proxy）を選択
+		SimAwsConnectionManageService sacms = new SimAwsConnectionManageService();
+		ConnectionType con = sacms.retriveConnection();
+		configsBuilder = con.retriveconfigsBuilder();
+		// Streamメッセージ取得後のタイムポジション（DynamoDB）更新用インスタンス取得
+		KinesisDateTimePosition skdtfd = new KinesisDateTimePosition(con.retriveDynamoClient(), SimGetprop.getProp("postbname"));
 		
-		// proxyアクセス
-		/*SimAwsClientManageService sacms = new SimAwsClientManageService(
-				SimGetprop.getProp("proxyhost"),
-				SimGetprop.getProp("proxyport"));*/
-		//httpclient = sacms.retriveHttpClient();
-
 		/**
 		 * KCLのエントリポイントを生成（2.xからスケジューラという。1.xはワーカー）。
 		 * InitialPositionInStreamのパラメータを変更したい場合、既存のDynamoDBテーブルを削除しないと有効にならない。
@@ -83,18 +74,7 @@ public class SimKinesisConsumeApp {
 		 * （ここ重要）個別実装のDynamoDBテーブルのタイムスタンプを変更（過去に遡るとか）した場合、KCLが生成したDynamoDBテーブル（プログラム名のもの）
 		 * もあわせて削除すること（整合性があわなくなり動作しなくなる）。
 		 */
-		
-		// インターネットダイレクトアクセス
-		SimKinesisDateTimePositionFromDynamodb skdtfd = new SimKinesisDateTimePositionFromDynamodb(credentialsProvider,region);
-		
-		// EndpointURIアクセス
-		/*SimKinesisDateTimePositionFromDynamodb skdtfd = new SimKinesisDateTimePositionFromDynamodb(credentialsProvider,
-				region, endpointuri);*/
-		
-		// プロキシアクセス
-		/*SimKinesisDateTimePositionFromDynamodb skdtfd = new SimKinesisDateTimePositionFromDynamodb(credentialsProvider,
-		　　　　　region, httpclient);*/
-		
+				
 		Scheduler scheduler = new Scheduler(configsBuilder.checkpointConfig(), configsBuilder.coordinatorConfig(),
 				configsBuilder.leaseManagementConfig(), configsBuilder.lifecycleConfig(),
 				configsBuilder.metricsConfig(), configsBuilder.processorConfig(),

@@ -1,9 +1,6 @@
 package com.simosan.kclapi.kcllogfetch;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -71,7 +68,7 @@ public class SimPropertyCheckプロキシ指定パターンTest {
 		}
 		log.info("=================================================");
 		assertEquals(spc.chkPropertyfile(),true);
-		assertThat(spc.getConnectType(),is("PROXY"));
+		//assertThat(spc.getConnectType(),is("PROXY"));
 				
 	}
 }

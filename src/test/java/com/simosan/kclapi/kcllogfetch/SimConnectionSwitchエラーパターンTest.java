@@ -1,23 +1,17 @@
 package com.simosan.kclapi.kcllogfetch;
 
-import static org.junit.Assert.assertEquals;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.simosan.kclapi.kcllogfetch.service.SimConnectionSwitch;
 
-import com.simosan.kclapi.kcllogfetch.common.SimPropertyCheck;
-
-
-public class SimPropertyCheckEndpointURIパターンTest {
-	private static final Logger log = LoggerFactory.getLogger(SimPropertyCheckEndpointURIパターンTest.class);
+public class SimConnectionSwitchエラーパターンTest {
+	
+	private static final Logger log = LoggerFactory.getLogger(SimConnectionSwitchエラーパターンTest.class);
 	
 	@Before
 	public void setUp() throws Exception {
@@ -30,7 +24,7 @@ public class SimPropertyCheckEndpointURIパターンTest {
 		
 		// 本テストのプロパティファイルを正にする
 		File neta = new File(
-				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/SimPropertyCheck_EndpointURIパターン_正常系.properties");
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/SimCoonectionSwitchエラーパターン.properties");
 		File sei = new File(
 				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/kcllogfetch.properties");
 		neta.renameTo(sei);
@@ -42,7 +36,7 @@ public class SimPropertyCheckEndpointURIパターンTest {
 		File testmodosi = new File(
 				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/kcllogfetch.properties");
 		File netamodosi = new File(
-				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/SimPropertyCheck_EndpointURIパターン_正常系.properties");
+				"/Users/sim/Documents/eclipse_workspace/kcllogfetch/etc/SimCoonectionSwitchエラーパターン.properties");
 		testmodosi.renameTo(netamodosi);
 		
 		//退避したプロパティファイルを戻す
@@ -53,21 +47,11 @@ public class SimPropertyCheckEndpointURIパターンTest {
 		seitaihi.renameTo(seimodosi);
     }
 	
-	@Test
-	public void SimPropertyCheck_EndpointURIパターン_正常系() throws Exception{
-		
-        SimPropertyCheck spc = new SimPropertyCheck();
-        Properties properties = new Properties();
-        String path = System.getProperty("proppath");
-		try {
-			InputStream istream = new FileInputStream(path);
-			properties.load(istream);
-		} catch (IOException e) {
-			log.error("プロパティファイルが読み込めません！", e);
-			System.exit(255);
-		}
+	@Test(expected = Exception.class)
+	public void SimCoonectionSwitchエラーパターンTest_異常系() throws Exception{
+		SimConnectionSwitch scs = new SimConnectionSwitch();
 		log.info("=================================================");
-		assertEquals(spc.chkPropertyfile(),true);
-				
+		scs.getConnectionType();
 	}
+
 }
