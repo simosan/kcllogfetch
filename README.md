@@ -28,7 +28,7 @@ prof (required)
 <br>
 region (required)
 <br>
-  AWS region name
+　AWS region name
 <br>
 streamname (required)
 <br>
@@ -36,15 +36,15 @@ streamname (required)
 <br>
 rolesesname (required)
 <br>
-  Name of the assesume role (required)
+　Name of the assesume role (required)
 <br>
 rolearn (required)
 <br>
-  Resource name for the assesume role
+　Resource name for the assesume role
 <br>
 proxyhost (optional)
 <br>
-  Server host name when specifying proxy
+　Server host name when specifying proxy
 <br>
 proxyport (optional)
 <br>
@@ -56,7 +56,7 @@ endpointuri (optional)
 <br>
 postbname (required)
 <br>
-  Name of the DynamoDB table for positioning
+　Name of the DynamoDB table for positioning
 <br>
 partitionkey (required)
 <br>
@@ -64,19 +64,19 @@ partitionkey (required)
 <br>
 partitionkey_value (required)
 <br>
-  Value of the partition key of the DynamoDB table for positioning
+　Value of the partition key of the DynamoDB table for positioning
 <br>
 dtpkey (required)
 <br>
-  Date key of the DynamoDB table for positioning
+　Date key of the DynamoDB table for positioning
 <br>
 timezoneid (required)
 <br>
-  Time zone for KinesisStream acquisition messages
+　Time zone for KinesisStream acquisition messages
 <br>
 extracttype (required)
 <br>
-  Type of KinesisStream message (NORM or SUBSCRIPTION)
+　Type of KinesisStream message (NORM or SUBSCRIPTION)
 <br>
-　 -> Uncompressed message or compressed message like Cloudwatchlogs
+　　-> Uncompressed message or compressed message like Cloudwatchlogs
 
