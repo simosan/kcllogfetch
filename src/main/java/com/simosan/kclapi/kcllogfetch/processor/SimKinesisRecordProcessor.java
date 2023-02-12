@@ -4,12 +4,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.simosan.kclapi.kcllogfetch.common.SimGetprop;
-import com.simosan.kclapi.kcllogfetch.domain.SimKinesisExtractDataUnprocessed;
-import com.simosan.kclapi.kcllogfetch.domain.SimkinesisExtractData;
+import com.simosan.kclapi.kcllogfetch.domain.SimKinesisExtractManageService;
+import com.simosan.kclapi.kcllogfetch.domain.extract.SimkinesisExtractData;
 import com.simosan.kclapi.kcllogfetch.inflastructure.SimKinesisDataExport;
 import com.simosan.kclapi.kcllogfetch.inflastructure.SimKinesisDataExportlog;
 import com.simosan.kclapi.kcllogfetch.service.SimAwsConnectionManageService;
-import com.simosan.kclapi.kcllogfetch.service.SimKinesisDataExportProcessorService;
 import com.simosan.kclapi.kcllogfetch.service.awsconnection.ConnectionType;
 import com.simosan.kclapi.kcllogfetch.service.KinesisDateTimePosition;
 
@@ -28,7 +27,6 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor {
 	private static final Logger log = LoggerFactory.getLogger(SimKinesisRecordProcessor.class);
 	private String shardId;
 	private SimKinesisDataExportProcessorService svc;
-	// private String endpointuri;
 
 	/**
 	 * ShardRecordProcessor（processRecords）からのデータ配信前にKCLによって初期化
@@ -53,7 +51,8 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor {
 		KinesisDateTimePosition skdtfd = new KinesisDateTimePosition(con.retriveDynamoClient(), SimGetprop.getProp("postbname"));
 		
 		// Streamメッセージの抽出方法と出力先を指定
-		SimkinesisExtractData sked = new SimKinesisExtractDataUnprocessed();
+		SimKinesisExtractManageService skems = new SimKinesisExtractManageService();
+		SimkinesisExtractData sked = skems.retriveExtract();
 		SimKinesisDataExport skde = new SimKinesisDataExportlog();
 		svc = new SimKinesisDataExportProcessorService(sked, skde, skdtfd);
 

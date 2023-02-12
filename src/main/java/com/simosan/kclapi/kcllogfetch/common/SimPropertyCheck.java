@@ -55,6 +55,10 @@ public class SimPropertyCheck {
 			log.error("SimPropertyCheck.chkPropertyfile - プロパティファイルのtimezoneidが空です");
 			return false;
 		}
+		if (SimGetprop.getProp("extracttype").isEmpty()) {
+			log.error("SimPropertyCheck.chkPropertyfile - プロパティファイルのextracttypeが空です");
+			return false;
+		}
 		return true;
 	}
 }
