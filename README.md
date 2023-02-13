@@ -15,68 +15,25 @@
    e.g.) java -Dproppath=~/kcllogfetch.properties -jar kcllogfetch.jar
 
 ```
-
+<br>
 * The specifications of the property file are as follows
 
-appname (required)
-<br>
-　Name of the app that KCL registers in DynamoDB (lease table)
-<br>
-prof (required)
-<br>
-　AWS profile name
-<br>
-region (required)
-<br>
-　AWS region name
-<br>
-streamname (required)
-<br>
-　Kinesis stream name
-<br>
-rolesesname (required)
-<br>
-　Name of the assesume role (required)
-<br>
-rolearn (required)
-<br>
-　Resource name for the assesume role
-<br>
-proxyhost (optional)
-<br>
-　Server host name when specifying proxy
-<br>
-proxyport (optional)
-<br>
-　Server port name when specifying proxy
-<br>
-endpointuri (optional)
-<br>
-　URI when using endpoint
-<br>
-postbname (required)
-<br>
-　Name of the DynamoDB table for positioning
-<br>
-partitionkey (required)
-<br>
-　Name of the DynamoDB table partition key for positioning
-<br>
-partitionkey_value (required)
-<br>
-　Value of the partition key of the DynamoDB table for positioning
-<br>
-dtpkey (required)
-<br>
-　Date key of the DynamoDB table for positioning
-<br>
-timezoneid (required)
-<br>
-　Time zone for KinesisStream acquisition messages
-<br>
-extracttype (required)
-<br>
-　Type of KinesisStream message (NORM or SUBSCRIPTION)
-<br>
-　　-> Uncompressed message or compressed message like Cloudwatchlogs
+|  Item              |  Description                                                    | required or optional   |
+| ------------------ | --------------------------------------------------------------- | ---------------------- |
+| appname            | Name of the app that KCL registers in DynamoDB                  | required               |
+| prof               | AWS profile name                                                | required               |
+| region             | AWS region name                                                 | required               |
+| streamname         | Kinesis stream name                                             | required               |
+| rolesesname        | Name of the assesume role                                       | required               |
+| rolearn            | Resource name for the assesume role                             | required               |
+| postbname          | Name of the DynamoDB table for positioning                      | required               |
+| partitionkey       | Name of the DynamoDB table partition key for positioning        | required               |
+| partitionkey_value | Value of the partition key of the DynamoDB table for positioning| required               |
+| dtpkey             | Date key of the DynamoDB table for positioning                  | required               |
+| timezoneid         | Time zone for KinesisStream acquisition messages                | required               |
+| extracttype        | Type of KinesisStream message (NORM or SUBSCRIPTION)<br>-> Uncompressed message or compressed message like Cloudwatchlogs        | required               |
+| exporttype         | Specify data output destination (currently only LOG)            | required               |
+| proxyhost          | Server host name when specifying proxy                          | optional               |
+| proxyport          | Server port name when specifying proxy                          | optional               |
+| endpointuri        | URI when using endpoint                                         | optional               |
 

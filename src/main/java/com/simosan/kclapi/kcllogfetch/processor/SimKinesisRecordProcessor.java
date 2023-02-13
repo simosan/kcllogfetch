@@ -6,8 +6,8 @@ import org.slf4j.LoggerFactory;
 import com.simosan.kclapi.kcllogfetch.common.SimGetprop;
 import com.simosan.kclapi.kcllogfetch.domain.SimKinesisExtractManageService;
 import com.simosan.kclapi.kcllogfetch.domain.extract.SimkinesisExtractData;
-import com.simosan.kclapi.kcllogfetch.inflastructure.SimKinesisDataExport;
-import com.simosan.kclapi.kcllogfetch.inflastructure.SimKinesisDataExportlog;
+import com.simosan.kclapi.kcllogfetch.inflastructure.SimKinesisExportManageService;
+import com.simosan.kclapi.kcllogfetch.inflastructure.export.SimKinesisDataExport;
 import com.simosan.kclapi.kcllogfetch.service.SimAwsConnectionManageService;
 import com.simosan.kclapi.kcllogfetch.service.awsconnection.ConnectionType;
 import com.simosan.kclapi.kcllogfetch.service.KinesisDateTimePosition;
@@ -53,7 +53,9 @@ public class SimKinesisRecordProcessor implements ShardRecordProcessor {
 		// Streamメッセージの抽出方法と出力先を指定
 		SimKinesisExtractManageService skems = new SimKinesisExtractManageService();
 		SimkinesisExtractData sked = skems.retriveExtract();
-		SimKinesisDataExport skde = new SimKinesisDataExportlog();
+		SimKinesisExportManageService skxms = new SimKinesisExportManageService();
+		SimKinesisDataExport skde = skxms.retriveExport();
+		
 		svc = new SimKinesisDataExportProcessorService(sked, skde, skdtfd);
 
 	}

@@ -1,4 +1,4 @@
-package com.simosan.kclapi.kcllogfetch.inflastructure;
+package com.simosan.kclapi.kcllogfetch.inflastructure.export;
 
 import java.util.List;
 

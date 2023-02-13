@@ -44,7 +44,6 @@ public class SimKinesisExtractSubscription implements SimkinesisExtractData {
 
 	/**
 	 * Kinesisに溜め込んだデータバッファを取得し、JSONデータの"Message"のみ取得する。 データバッファは圧縮されているため解凍する必要あり。
-	 * データを取得したらDynamoDBのポジショニング用タイムスタンプを更新
 	 * 
 	 * @param KinesisClientRecordのdata
 	 */

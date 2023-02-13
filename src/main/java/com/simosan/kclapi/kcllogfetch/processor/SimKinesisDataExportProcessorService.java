@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.simosan.kclapi.kcllogfetch.common.SimGetprop;
 import com.simosan.kclapi.kcllogfetch.domain.extract.SimkinesisExtractData;
-import com.simosan.kclapi.kcllogfetch.inflastructure.SimKinesisDataExport;
+import com.simosan.kclapi.kcllogfetch.inflastructure.export.SimKinesisDataExport;
 import com.simosan.kclapi.kcllogfetch.service.KinesisDateTimePosition;
 
 import software.amazon.kinesis.lifecycle.events.ProcessRecordsInput;

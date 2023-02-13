@@ -3,120 +3,137 @@
 <!-- アプリ再起動なしでXMLを読み込むようにする -->
 <configuration scan="true" scanPeriod="60 seconds">
 
-  <!-- ログ出力先ディレクトリ -->
-  <property name="logDir" value="/Users/sim/log/" />
-  <!-- property name="logDir" value="C:/Users/simos_000/log/" / -->
-  <!-- KCLSDKログのみ抽出し出力 -->
-  <property name="sdklogfileName" value="kcllog_awssdklog.log" />
-  <!-- 本APログのみ抽出し出力 -->
-  <property name="aplogfileName" value="kcllog_aplog.log" />
-  <!-- ログのタイムスタンプの形式を指定 -->
-  <property name="format1" value="%d{yyyy/MM/dd HH:mm:ss.SSS} [%t] %-6p %c{10} %m%n" />
-  
-  <!-- shardsからvpcflowログのみ抽出し出力 -->
-  <property name="vpcflowfileName" value="kcllogfetch_vpcflow.log" />
-  <!-- shardsからcloudtrailログのみ抽出し出力 -->
-  <property name="trailfileName" value="kcllogfetch_trail.log" />
-  <!-- shardsからguraddutyログのみ抽出し出力 -->
-  <property name="guarddutyfileName" value="kcllogfetch_guarddt.log" />
+	<!-- ログ出力先ディレクトリ -->
+	<property name="logDir" value="/Users/sim/log/" />
+	<!-- property name="logDir" value="C:/Users/simos_000/log/" / -->
+	<!-- KCLSDKログのみ抽出し出力 -->
+	<property name="sdklogfileName" value="kcllog_awssdklog.log" />
+	<!-- 本APログのみ抽出し出力 -->
+	<property name="aplogfileName" value="kcllog_aplog.log" />
+	<!-- ログのタイムスタンプの形式を指定 -->
+	<property name="format1"
+		value="%d{yyyy/MM/dd HH:mm:ss.SSS} [%t] %-6p %c{10} %m%n" />
+
+	<!-- shardsからvpcflowログのみ抽出し出力 -->
+	<property name="vpcflowfileName"
+		value="kcllogfetch_vpcflow.log" />
+	<!-- shardsからcloudtrailログのみ抽出し出力 -->
+	<property name="trailfileName" value="kcllogfetch_trail.log" />
+	<!-- shardsからguraddutyログのみ抽出し出力 -->
+	<property name="guarddutyfileName"
+		value="kcllogfetch_guarddt.log" />
 
 
-  <!-- KCLSDKが出力するAPログ（INFOのみでパッケージ絞り込み） -->
-  <appender name="SDK_FILE" class="ch.qos.logback.core.FileAppender">
-    <filter class="ch.qos.logback.classic.filter.LevelFilter">
-        <level>INFO</level>
-        <onMatch>ACCEPT</onMatch>
-	    <onMismatch>DENY</onMismatch>
-    </filter>
-    <file>${logDir}${sdklogfileName}</file>
-    <encoder>
-      <pattern>${format1}</pattern>
-    </encoder>
-  </appender>
-  
-  <logger name="software.amazon.kinesis.coordinator" additivity="false">
-    <appender-ref ref="SDK_FILE" />
-  </logger>
-  
+	<!-- KCLSDKが出力するAPログ（INFOのみでパッケージ絞り込み） -->
+	<appender name="SDK_FILE"
+		class="ch.qos.logback.core.FileAppender">
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>INFO</level>
+			<onMatch>ACCEPT</onMatch>
+			<onMismatch>DENY</onMismatch>
+		</filter>
+		<file>${logDir}${sdklogfileName}</file>
+		<encoder>
+			<pattern>${format1}</pattern>
+		</encoder>
+	</appender>
 
-  <!-- 本APが出力するAPログ（INFO以上のみ） -->
-  <appender name="AP_FILE" class="ch.qos.logback.core.FileAppender">
-    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-        <level>INFO</level>
-    </filter>
-    <file>${logDir}${aplogfileName}</file>
-    <encoder>
-      <pattern>${format1}</pattern>
-    </encoder>
-  </appender>
-  
-  <logger name="com.simosan">
-    <appender-ref ref="AP_FILE" />
-  </logger>
+	<logger name="software.amazon.kinesis.coordinator"
+		additivity="false">
+		<appender-ref ref="SDK_FILE" />
+	</logger>
 
 
+	<!-- 本APが出力するAPログ（INFO以上のみ） -->
+	<appender name="AP_FILE"
+		class="ch.qos.logback.core.FileAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+		</filter>
+		<file>${logDir}${aplogfileName}</file>
+		<encoder>
+			<pattern>${format1}</pattern>
+		</encoder>
+	</appender>
 
-  <!-- Kinesisから取得したvpcflowログのみVPCLOG_FILEに指定したファイルに出力（APログ等は後続の定義で出力） -->
-  <appender name="VPCLOG_FILE" class="ch.qos.logback.core.FileAppender">
-    <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-        <evaluator>
-          <matcher>
-            <name>vpcflowlogMatcher</name>
-            <regex>SimVPCFlowlog</regex>
-          </matcher>
-          <expression>vpcflowlogMatcher.matches(formattedMessage)</expression>
-        </evaluator>
-        <OnMismatch>DENY</OnMismatch> 
-    </filter>
-    <file>${logDir}${vpcflowfileName}</file>
-    <encoder>
-      <pattern>${format1}</pattern>
-    </encoder>
-  </appender>
-  <logger name="com.simosan.kclapi.kcllogfetch.SimKinesisRecordProcessor" additivity="false">
-    <appender-ref ref="VPCLOG_FILE" />
-  </logger>
+	<logger name="com.simosan">
+		<appender-ref ref="AP_FILE" />
+	</logger>
 
-  <!-- Kinesisから取得したcloudtrailログのみCLOUDTRAIL_FILEに指定したファイルに出力（APログ等は後続の定義で出力） -->
-  <appender name="CLOUDTRAIL_FILE" class="ch.qos.logback.core.FileAppender">
-    <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-        <evaluator>
-          <matcher>
-            <name>cloudtrailMatcher</name>
-            <regex>CloudTrail/DefaultLogGroup</regex>
-          </matcher>
-          <expression>cloudtrailMatcher.matches(formattedMessage)</expression>
-        </evaluator>
-        <OnMismatch>DENY</OnMismatch>
-    </filter>
-    <file>${logDir}${trailfileName}</file>
-    <encoder>
-      <pattern>${format1}</pattern>
-    </encoder>
-  </appender>
-  <logger name="com.simosan.kclapi.kcllogfetch.SimKinesisRecordProcessor" additivity="false">
-    <appender-ref ref="CLOUDTRAIL_FILE" />
-  </logger>
-    
-  <!-- Kinesisから取得したguarddutyログのみGUARDDUTY_FILEに指定したファイルに出力（APログ等は後続の定義で出力） -->
-  <appender name="GUARDDUTY_FILE" class="ch.qos.logback.core.FileAppender">
-    <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-        <evaluator>
-          <matcher>
-            <name>guardDutyMatcher</name>
-            <regex>/aws/events/guradduty</regex>
-          </matcher>
-          <expression>guardDutyMatcher.matches(formattedMessage)</expression>
-        </evaluator>
-        <OnMismatch>DENY</OnMismatch>
-    </filter>
-    <file>${logDir}${guarddutyfileName}</file>
-    <encoder>
-      <pattern>${format1}</pattern>
-    </encoder>
-  </appender>
-  <logger name="com.simosan.kclapi.kcllogfetch.SimKinesisRecordProcessor" additivity="false">
-    <appender-ref ref="GUARDDUTY_FILE" />
-  </logger>
-  
+
+
+	<!-- Kinesisから取得したvpcflowログのみVPCLOG_FILEに指定したファイルに出力（APログ等は後続の定義で出力） -->
+	<appender name="VPCLOG_FILE"
+		class="ch.qos.logback.core.FileAppender">
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+			<level>INFO</level>
+			<evaluator>
+				<matcher>
+					<name>vpcflowlogMatcher</name>
+					<regex>SimVPCFlowlog</regex>
+				</matcher>
+				<expression>vpcflowlogMatcher.matches(formattedMessage)</expression>
+			</evaluator>
+			<OnMismatch>DENY</OnMismatch>
+		</filter>
+		<file>${logDir}${vpcflowfileName}</file>
+		<encoder>
+			<pattern>${format1}</pattern>
+		</encoder>
+	</appender>
+	<logger
+		name="com.simosan.kclapi.kcllogfetch.inflastructure.export"
+		additivity="false">
+		<appender-ref ref="VPCLOG_FILE" />
+	</logger>
+
+	<!-- Kinesisから取得したcloudtrailログのみCLOUDTRAIL_FILEに指定したファイルに出力（APログ等は後続の定義で出力） -->
+	<appender name="CLOUDTRAIL_FILE"
+		class="ch.qos.logback.core.FileAppender">
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+			<level>INFO</level>
+			<evaluator>
+				<matcher>
+					<name>cloudtrailMatcher</name>
+					<regex>CloudTrail/DefaultLogGroup</regex>
+				</matcher>
+				<expression>cloudtrailMatcher.matches(formattedMessage)</expression>
+			</evaluator>
+			<OnMismatch>DENY</OnMismatch>
+		</filter>
+		<file>${logDir}${trailfileName}</file>
+		<encoder>
+			<pattern>${format1}</pattern>
+		</encoder>
+	</appender>
+	<logger
+		name="com.simosan.kclapi.kcllogfetch.inflastructure.export"
+		additivity="false">
+		<appender-ref ref="CLOUDTRAIL_FILE" />
+	</logger>
+
+	<!-- Kinesisから取得したguarddutyログのみGUARDDUTY_FILEに指定したファイルに出力（APログ等は後続の定義で出力） -->
+	<appender name="GUARDDUTY_FILE"
+		class="ch.qos.logback.core.FileAppender">
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+			<level>INFO</level>
+			<evaluator>
+				<matcher>
+					<name>guardDutyMatcher</name>
+					<regex>/aws/events/guradduty</regex>
+				</matcher>
+				<expression>guardDutyMatcher.matches(formattedMessage)</expression>
+			</evaluator>
+			<OnMismatch>DENY</OnMismatch>
+		</filter>
+		<file>${logDir}${guarddutyfileName}</file>
+		<encoder>
+			<pattern>${format1}</pattern>
+		</encoder>
+	</appender>
+	<logger
+		name="com.simosan.kclapi.kcllogfetch.inflastructure.export"
+		additivity="false">
+		<appender-ref ref="GUARDDUTY_FILE" />
+	</logger>
+
 </configuration>

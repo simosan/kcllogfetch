@@ -59,6 +59,10 @@ public class SimPropertyCheck {
 			log.error("SimPropertyCheck.chkPropertyfile - プロパティファイルのextracttypeが空です");
 			return false;
 		}
+		if (SimGetprop.getProp("exporttype").isEmpty()) {
+			log.error("SimPropertyCheck.chkPropertyfile - プロパティファイルのexporttypeが空です");
+			return false;
+		}
 		return true;
 	}
 }
