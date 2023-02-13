@@ -15,7 +15,7 @@
    e.g.) java -Dproppath=~/kcllogfetch.properties -jar kcllogfetch.jar
 
 ```
-<br>
+
 * The specifications of the property file are as follows
 
 |  Item              |  Description                                                    | required or optional   |
