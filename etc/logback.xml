@@ -136,7 +136,7 @@
 		<appender-ref ref="GUARDDUTY_FILE" />
 	</logger>
 	
-	<!-- Kinesisから取得したguarddutyログのみGUARDDUTY_FILEに指定したファイルに出力（APログ等は後続の定義で出力） -->
+	<!-- Kinesisから取得したkplログのみKPLLOG_FILEに指定したファイルに出力 -->
 	<appender name="KPLLOG_FILE"
 		class="ch.qos.logback.core.FileAppender">
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
