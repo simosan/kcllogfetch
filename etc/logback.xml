@@ -22,6 +22,9 @@
 	<!-- shardsからguraddutyログのみ抽出し出力 -->
 	<property name="guarddutyfileName"
 		value="kcllogfetch_guarddt.log" />
+	<!-- shardsからKPL生成ログのみ抽出し出力 -->
+	<property name="kplfileName"
+		value="kcllogfetch_kpl.log" />
 
 
 	<!-- KCLSDKが出力するAPログ（INFOのみでパッケージ絞り込み） -->
@@ -65,7 +68,6 @@
 	<appender name="VPCLOG_FILE"
 		class="ch.qos.logback.core.FileAppender">
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-			<level>INFO</level>
 			<evaluator>
 				<matcher>
 					<name>vpcflowlogMatcher</name>
@@ -90,7 +92,6 @@
 	<appender name="CLOUDTRAIL_FILE"
 		class="ch.qos.logback.core.FileAppender">
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-			<level>INFO</level>
 			<evaluator>
 				<matcher>
 					<name>cloudtrailMatcher</name>
@@ -115,7 +116,6 @@
 	<appender name="GUARDDUTY_FILE"
 		class="ch.qos.logback.core.FileAppender">
 		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-			<level>INFO</level>
 			<evaluator>
 				<matcher>
 					<name>guardDutyMatcher</name>
@@ -134,6 +134,30 @@
 		name="com.simosan.kclapi.kcllogfetch.inflastructure.export"
 		additivity="false">
 		<appender-ref ref="GUARDDUTY_FILE" />
+	</logger>
+	
+	<!-- Kinesisから取得したguarddutyログのみGUARDDUTY_FILEに指定したファイルに出力（APログ等は後続の定義で出力） -->
+	<appender name="KPLLOG_FILE"
+		class="ch.qos.logback.core.FileAppender">
+		<filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+			<evaluator>
+				<matcher>
+					<name>kplMatcher</name>
+					<regex>idAndVulgarMsg</regex>
+				</matcher>
+				<expression>kplMatcher.matches(formattedMessage)</expression>
+			</evaluator>
+			<OnMismatch>DENY</OnMismatch>
+		</filter>
+		<file>${logDir}${kplfileName}</file>
+		<encoder>
+			<pattern>${format1}</pattern>
+		</encoder>
+	</appender>
+	<logger
+		name="com.simosan.kclapi.kcllogfetch.inflastructure.export"
+		additivity="false">
+		<appender-ref ref="KPLLOG_FILE" />
 	</logger>
 
 </configuration>
