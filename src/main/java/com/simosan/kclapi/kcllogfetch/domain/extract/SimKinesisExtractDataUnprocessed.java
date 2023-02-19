@@ -3,6 +3,7 @@ package com.simosan.kclapi.kcllogfetch.domain.extract;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ public class SimKinesisExtractDataUnprocessed implements SimkinesisExtractData {
 					"SimKinesisExtractDataUnprocessed.extractDataFromJson - KinesisClientRecord-SimKinesisExtractDataUnprocessed Excetpion!",
 					e);
 		}
-		return strmessage;
+		List<String> unmodstrmessage = Collections.unmodifiableList(strmessage);
+		return unmodstrmessage;
 	}
 }

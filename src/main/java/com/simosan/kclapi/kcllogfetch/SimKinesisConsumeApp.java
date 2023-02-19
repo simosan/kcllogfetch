@@ -66,7 +66,6 @@ public class SimKinesisConsumeApp {
 		
 		/**
 		 * KCLのエントリポイントを生成（2.xからスケジューラという。1.xはワーカー）。
-		 * InitialPositionInStreamのパラメータを変更したい場合、既存のDynamoDBテーブルを削除しないと有効にならない。
 		 * パラメータはTRIM_HORIZON(取得していない最も古いレコード、LATEST(最も新しいレコード）、AT_TIMESTAMP（タイムスタンプ指定）
 		 * ちなみにTRIM_HORIZONはテーブル新規作成後（初回起動時）はKinesisStreamに存在するデータをすべて拾ってくる（Default24時間保持）。
 		 * それが嫌な場合は、AT_TIMESTAMPをつかう。（本APはこれを採用）

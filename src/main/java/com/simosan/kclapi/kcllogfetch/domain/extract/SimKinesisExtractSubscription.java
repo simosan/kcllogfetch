@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -38,8 +39,8 @@ public class SimKinesisExtractSubscription implements SimkinesisExtractData {
 		} catch (IOException e) {
 			log.error("SimKinesisExtractSubscription: Json Parse Error!", e);
 		}
-
-		return strmessage;
+		List<String> unmodstrmessage = Collections.unmodifiableList(strmessage);
+		return unmodstrmessage;
 	}
 
 	/**
