@@ -1,4 +1,6 @@
 # Overview
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsimosan%2Fkcllogfetch.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsimosan%2Fkcllogfetch?ref=badge_shield)
+
 
 * This tool uses the Kinesis Client Library (v2) to retrieve data from Kinesis Streams.
 
@@ -37,3 +39,7 @@
 | proxyport          | Server port name when specifying proxy                          | optional               |
 | endpointuri        | URI when using endpoint                                         | optional               |
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fsimosan%2Fkcllogfetch.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fsimosan%2Fkcllogfetch?ref=badge_large)
